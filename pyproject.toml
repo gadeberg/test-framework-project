@@ -1,0 +1,67 @@
+[project]
+name = "test-framework-project"
+version = "0.1.0"
+description = "Getting-started example test project consuming test-framework."
+readme = "README.md"
+license = "0BSD"
+requires-python = ">=3.11"
+dependencies = [
+    "test-framework",
+]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.370",
+    "ruff>=0.6.0",
+    "fastapi>=0.111,<1",
+    "uvicorn>=0.30,<1",
+]
+
+[tool.uv]
+# Cool-down gate: same policy as test-framework itself.
+exclude-newer = "2026-06-06T00:00:00Z"
+
+[tool.uv.sources]
+# The published path: install from the framework's GitHub repo, pinned by tag.
+# Never change this to a local `path =` source - that breaks every other
+# checkout and CI. For live co-development, layer an editable install into
+# the venv *after* `uv sync` instead (see `make dev` / README).
+test-framework = { git = "https://github.com/gadeberg/test-framework", tag = "v0.1.0" }
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+markers = [
+    "api: API-level tests",
+    "ui: Web-UI tests",
+    "smoke: smoke subset",
+    "requirement(id): traces a test/scenario to a requirement id, e.g. REQ-1234",
+]
+# --screenshot/--tracing: UI-failure evidence via pytest-playwright's built-in
+# capture (works for plain-Python tests and Gherkin scenarios alike; artifacts
+# land in test-results/). junit_logging + log_level copy the step/check evidence
+# lines into the JUnit XML, mirroring the framework repo's own settings.
+addopts = "--junitxml=reports/junit.xml --html=reports/report.html --self-contained-html --screenshot=only-on-failure --tracing=retain-on-failure"
+junit_logging = "log"
+log_level = "INFO"
+filterwarnings = [
+    # pytest-bdd 7.x's generated scenario functions trigger this pytest 9 warning
+    # on every BDD test; harmless noise pending a pytest-bdd release.
+    "ignore:usefixtures\\(\\) in .* without arguments has no effect",
+]
+
+[tool.pyright]
+# Relaxed tier: test authors shouldn't fight the type checker over pytest's
+# loosely-typed fixtures/decorators. The framework package itself is strict.
+include = ["tests", "support", "conftest.py", "scripts"]
+typeCheckingMode = "standard"
+pythonVersion = "3.11"
+venvPath = "."
+venv = ".venv"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
