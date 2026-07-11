@@ -22,8 +22,10 @@ def main() -> None:
     new_tag = sys.argv[1]
 
     text = PYPROJECT.read_text()
+    # Whitespace-tolerant so a TOML reformat doesn't break the script; quotes
+    # stay double, matching what uv itself writes.
     updated = re.sub(
-        r'(test-framework = \{ git = "[^"]+", tag = ")[^"]+(" \})',
+        r'(test-framework\s*=\s*\{\s*git\s*=\s*"[^"]+"\s*,\s*tag\s*=\s*")[^"]+("\s*\})',
         rf"\g<1>{new_tag}\g<2>",
         text,
         count=1,

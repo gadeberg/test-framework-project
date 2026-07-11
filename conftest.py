@@ -57,7 +57,9 @@ def mock_server_base_url() -> Generator[str, None, None]:
 def base_url(request: pytest.FixtureRequest) -> str:
     external = os.environ.get("BASE_URL")
     if external:
-        return external
+        # Strip any trailing slash so path concatenation can't produce "//"
+        # (the mock's URL below never carries one either).
+        return external.rstrip("/")
     # Lazy: the offline mock only starts when no real target is given.
     return request.getfixturevalue("mock_server_base_url")
 
